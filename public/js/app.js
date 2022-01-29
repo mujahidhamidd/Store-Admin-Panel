@@ -2118,6 +2118,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: {
@@ -2130,6 +2134,7 @@ __webpack_require__.r(__webpack_exports__);
       errors: [],
       password: "",
       form: false,
+      loadingButton: false,
       snackbar: {
         show: false,
         text: "test",
@@ -2142,18 +2147,21 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       if (!this.$refs.form.validate()) return;
+      this.loadingButton = true;
       axios.post("/api/login", {
         email: this.email,
         password: this.password
       }).then(function (response) {
-        // svae user and token into local storage
+        _this.loadingButton = false; // svae user and token into local storage
+
         if (response.status == 200) {
           (0,_helpers_helpers__WEBPACK_IMPORTED_MODULE_0__.saveUserToLocalStorage)(response.data.userInfo);
           (0,_helpers_helpers__WEBPACK_IMPORTED_MODULE_0__.setAutorizationHeaders)(response.data.userInfo.token);
           window.location.href = "/companies";
         }
       })["catch"](function (err) {
-        // handle validation errors
+        _this.loadingButton = false; // handle validation errors
+
         if (err.response.status == 422) {
           _this.errors = err.response.data.errors;
         } else if (err.response.status == 401) {
@@ -3059,6 +3067,8 @@ router.beforeEach(function (to, from, next) {
     next('/companies');
   } else if (to.path == '/' && currentUser) {
     next('/companies');
+  } else if (to.path == '/' && !currentUser) {
+    next('/login');
   } else {
     next();
   }
@@ -21497,16 +21507,18 @@ var render = function () {
                     [
                       _c("v-text-field", {
                         attrs: {
-                          label: "Login",
+                          label: "Email",
                           "error-messages": _vm.errors.email,
                           rules: [
                             function (v) {
                               return !!v || "Item is required"
                             },
                           ],
-                          name: "login",
-                          "prepend-icon": "mdi-account",
-                          type: "text",
+                          name: "Email",
+                          filled: "",
+                          rounded: "",
+                          "prepend-icon": "mdi-email",
+                          type: "email",
                         },
                         model: {
                           value: _vm.email,
@@ -21521,6 +21533,8 @@ var render = function () {
                         attrs: {
                           id: "password",
                           label: "Password",
+                          filled: "",
+                          rounded: "",
                           "error-messages": _vm.errors.password,
                           name: "password",
                           rules: [
@@ -21551,7 +21565,12 @@ var render = function () {
                       _c(
                         "v-btn",
                         {
-                          attrs: { color: "primary" },
+                          staticClass: "px-8 py-2",
+                          attrs: {
+                            loading: _vm.loadingButton,
+                            rounded: "",
+                            color: "primary",
+                          },
                           on: { click: _vm.login },
                         },
                         [_vm._v("Login")]

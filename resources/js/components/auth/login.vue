@@ -1,7 +1,5 @@
 <template>
   <v-row align="center" justify="center" class="my-9 py-9">
-
-
     <v-snackbar :color="snackbar.color" v-model="snackbar.show">
       {{ snackbar.text }}
 
@@ -21,18 +19,22 @@
           <v-card-text>
             <v-text-field
               v-model="email"
-              label="Login"
+              label="Email"
               :error-messages="errors.email"
               :rules="[(v) => !!v || 'Item is required']"
-              name="login"
-              prepend-icon="mdi-account"
-              type="text"
+              name="Email"
+              filled
+              rounded
+              prepend-icon="mdi-email"
+              type="email"
             ></v-text-field>
 
             <v-text-field
               v-model="password"
               id="password"
               label="Password"
+              filled
+              rounded
               :error-messages="errors.password"
               name="password"
               :rules="[(v) => !!v || 'Item is required']"
@@ -42,7 +44,9 @@
           </v-card-text>
           <v-card-actions>
             <div class="flex-grow-1"></div>
-            <v-btn @click="login" color="primary">Login</v-btn>
+            <v-btn @click="login" :loading="loadingButton" rounded class="px-8 py-2" color="primary"
+              >Login</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-form>
@@ -67,6 +71,7 @@ export default {
     errors: [],
     password: "",
     form: false,
+    loadingButton: false,
     snackbar: {
       show: false,
       text: "test",
@@ -76,22 +81,26 @@ export default {
   methods: {
     login() {
       if (!this.$refs.form.validate()) return;
+      this.loadingButton = true;
+
       axios
         .post("/api/login", {
           email: this.email,
           password: this.password,
         })
         .then((response) => {
+          this.loadingButton = false;
+
           // svae user and token into local storage
           if (response.status == 200) {
             saveUserToLocalStorage(response.data.userInfo);
             setAutorizationHeaders(response.data.userInfo.token);
 
-            window.location.href = "/companies"
-
+            window.location.href = "/companies";
           }
         })
         .catch((err) => {
+          this.loadingButton = false;
           // handle validation errors
           if (err.response.status == 422) {
             this.errors = err.response.data.errors;

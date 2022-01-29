@@ -31,7 +31,11 @@ router.beforeEach((to, from, next) => {
     }
     else if (to.path == '/' && currentUser) {
         next('/companies')
-    } else {
+    }
+    else if (to.path == '/' && !currentUser) {
+        next('/login')
+    }
+    else {
         next()
     }
 });
