@@ -134,7 +134,7 @@ export default {
       axios
         .get(`/api/categories`)
         .then((res) => {
-          this.categories = res.data;
+          this.categories = res.data.allCategoriesTree;
         })
         .catch((err) => console.log(err.response.data))
         .finally(() => ({}));

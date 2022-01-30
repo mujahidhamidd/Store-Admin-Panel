@@ -5,11 +5,7 @@ import VueRouter from 'vue-router';
 import { routes } from './routes';
 import { getLoggedInUser, setAutorizationHeaders } from './helpers/helpers';
 
-
-
 window.Vue = require("vue").default;
-
-
 
 const router = new VueRouter({
     routes,
@@ -49,7 +45,6 @@ if (getLoggedInUser()) {
 
 Vue.component("login", require("./components/auth/login.vue").default);
 Vue.component("home", require("./components/layout/home.vue").default);
-
 
 const app = new Vue({
     el: "#app",

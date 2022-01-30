@@ -18,7 +18,13 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
 
-        return Category::tree();
+        $tree = Category::tree();
+        $all = Category::all();
+
+        return response([
+            'allCategories' => $all,
+            'allCategoriesTree' =>  $tree
+        ]);
     }
 
     /**

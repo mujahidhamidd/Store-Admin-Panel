@@ -2462,7 +2462,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       axios.get("/api/categories").then(function (res) {
-        _this.categories = res.data;
+        _this.categories = res.data.allCategoriesTree;
       })["catch"](function (err) {
         return console.log(err.response.data);
       })["finally"](function () {
@@ -2739,6 +2739,83 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -2883,7 +2960,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       deep: true
     },
-    globalsearch: {
+    search: {
       handler: function handler() {
         this.getProducts();
       },
@@ -2891,44 +2968,35 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   data: function data() {
-    return {
+    var _ref;
+
+    return _ref = {
       search: "",
       name: "",
       price: 0,
       form: "",
       loadingButton: false,
-      errors: [],
-      totalproducts: null,
-      options: {},
-      loading: false,
-      products: [],
-      companies: [],
-      categories: [],
-      selectedCategory: null,
-      selectedCompany: null,
-      snackbar: {
-        show: false,
-        text: "test",
-        color: "green"
-      },
-      addProductDialog: false,
-      headers: [{
-        text: "ID",
-        value: "id"
-      }, {
-        text: "Name",
-        value: "name"
-      }, {
-        text: "Price",
-        value: "price"
-      }, {
-        text: "Company",
-        value: "company.name"
-      }, {
-        text: "Category",
-        value: "category_text"
-      }]
-    };
+      errors: []
+    }, _defineProperty(_ref, "search", null), _defineProperty(_ref, "totalproducts", null), _defineProperty(_ref, "options", {}), _defineProperty(_ref, "loading", false), _defineProperty(_ref, "products", []), _defineProperty(_ref, "companies", []), _defineProperty(_ref, "categories", []), _defineProperty(_ref, "mainCategories", []), _defineProperty(_ref, "subCategories", []), _defineProperty(_ref, "categoriesTree", []), _defineProperty(_ref, "selectedCategory", null), _defineProperty(_ref, "selectedCompany", null), _defineProperty(_ref, "selectedMainCategory", null), _defineProperty(_ref, "selectedSubCategory", null), _defineProperty(_ref, "snackbar", {
+      show: false,
+      text: "test",
+      color: "green"
+    }), _defineProperty(_ref, "addProductDialog", false), _defineProperty(_ref, "headers", [{
+      text: "ID",
+      value: "id"
+    }, {
+      text: "Name",
+      value: "name"
+    }, {
+      text: "Price",
+      value: "price"
+    }, {
+      text: "Company",
+      value: "company.name"
+    }, {
+      text: "Category",
+      value: "category_text"
+    }]), _ref;
   },
   methods: {
     getProducts: function getProducts() {
@@ -2942,7 +3010,10 @@ __webpack_require__.r(__webpack_exports__);
       var payload = {};
       payload = {
         page: page,
-        per_page: itemsPerPage
+        per_page: itemsPerPage,
+        search: this.search,
+        main_category_filter: this.selectedMainCategory,
+        sub_category_filter: this.selectedSubCategory
       };
 
       if (sortBy.length === 1 && sortDesc.length === 1) {
@@ -2972,7 +3043,14 @@ __webpack_require__.r(__webpack_exports__);
       var _this2 = this;
 
       axios.get("/api/categories").then(function (res) {
-        _this2.categories = res.data;
+        _this2.categories = res.data.allCategories;
+        _this2.categoriesTree = res.data.allCategoriesTree;
+        _this2.mainCategories = _this2.categories.filter(function (category) {
+          return !category.parent_id;
+        });
+        _this2.subCategories = _this2.categories.filter(function (category) {
+          return category.parent_id;
+        });
       })["catch"](function (err) {
         return console.log(err.response.data);
       })["finally"](function () {
@@ -22499,7 +22577,7 @@ var render = function () {
       _c(
         "v-dialog",
         {
-          attrs: { persistent: "", "max-width": "1000px" },
+          attrs: { "max-width": "1000px" },
           model: {
             value: _vm.addProductDialog,
             callback: function ($$v) {
@@ -22578,6 +22656,7 @@ var render = function () {
                                 attrs: {
                                   rounded: "",
                                   filled: "",
+                                  "hide-details": "",
                                   label: "name*",
                                   "error-messages": _vm.errors.name,
                                   rules: [
@@ -22676,7 +22755,7 @@ var render = function () {
                               _c("v-treeview", {
                                 attrs: {
                                   active: _vm.selectedCategory,
-                                  items: _vm.categories,
+                                  items: _vm.categoriesTree,
                                   activatable: "",
                                   rounded: "",
                                   hoverable: "",
@@ -22751,6 +22830,160 @@ var render = function () {
                 },
                 [_vm._v("Add New Product")]
               ),
+            ],
+            1
+          ),
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-row",
+        [
+          _c(
+            "v-col",
+            { attrs: { cols: "3" } },
+            [
+              _c("v-text-field", {
+                staticClass: "mx-4 white--text",
+                attrs: {
+                  rounded: "",
+                  filled: "",
+                  "hide-details": "",
+                  dense: "",
+                  label: "name*",
+                  required: "",
+                },
+                model: {
+                  value: _vm.search,
+                  callback: function ($$v) {
+                    _vm.search = $$v
+                  },
+                  expression: "search",
+                },
+              }),
+            ],
+            1
+          ),
+          _vm._v(" "),
+          _c(
+            "v-col",
+            { attrs: { cols: "3" } },
+            [
+              _c("v-autocomplete", {
+                staticClass: "mx-4 white--text",
+                attrs: {
+                  items: _vm.mainCategories,
+                  chips: "",
+                  filled: "",
+                  rounded: "",
+                  clearable: "",
+                  "small-chips": "",
+                  "item-text": "name",
+                  "item-value": "id",
+                  label: "Filter By Main Category",
+                },
+                on: { change: _vm.getProducts },
+                scopedSlots: _vm._u([
+                  {
+                    key: "selection",
+                    fn: function (data) {
+                      return [
+                        _c(
+                          "v-chip",
+                          _vm._b(
+                            {
+                              attrs: {
+                                dark: "",
+                                color: "primary",
+                                "input-value": data.selected,
+                              },
+                            },
+                            "v-chip",
+                            data.attrs,
+                            false
+                          ),
+                          [
+                            _vm._v(
+                              "\n                " +
+                                _vm._s(data.item.name) +
+                                "\n             "
+                            ),
+                          ]
+                        ),
+                      ]
+                    },
+                  },
+                ]),
+                model: {
+                  value: _vm.selectedMainCategory,
+                  callback: function ($$v) {
+                    _vm.selectedMainCategory = $$v
+                  },
+                  expression: "selectedMainCategory",
+                },
+              }),
+            ],
+            1
+          ),
+          _vm._v(" "),
+          _c(
+            "v-col",
+            { attrs: { cols: "3" } },
+            [
+              _c("v-autocomplete", {
+                staticClass: "mx-4 white--text",
+                attrs: {
+                  items: _vm.subCategories,
+                  clearable: "",
+                  chips: "",
+                  filled: "",
+                  "small-chips": "",
+                  rounded: "",
+                  "item-text": "name",
+                  "item-value": "id",
+                  label: "Filter By Sub Category",
+                },
+                on: { change: _vm.getProducts },
+                scopedSlots: _vm._u([
+                  {
+                    key: "selection",
+                    fn: function (data) {
+                      return [
+                        _c(
+                          "v-chip",
+                          _vm._b(
+                            {
+                              attrs: {
+                                dark: "",
+                                color: "primary",
+                                "input-value": data.selected,
+                              },
+                            },
+                            "v-chip",
+                            data.attrs,
+                            false
+                          ),
+                          [
+                            _vm._v(
+                              "\n                " +
+                                _vm._s(data.item.name) +
+                                "\n             "
+                            ),
+                          ]
+                        ),
+                      ]
+                    },
+                  },
+                ]),
+                model: {
+                  value: _vm.selectedSubCategory,
+                  callback: function ($$v) {
+                    _vm.selectedSubCategory = $$v
+                  },
+                  expression: "selectedSubCategory",
+                },
+              }),
             ],
             1
           ),

@@ -12,7 +12,13 @@ class Category extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
-
+    
+    /**
+     * tree
+     * form tree of categories and sub categories recursively
+     *
+     * @return collection
+     */
     public static function tree()
     {
         // get all categories
@@ -36,11 +42,36 @@ class Category extends Model
             }
         }
     }
+    
+    /**
+     * getChildrensIds
+     * recive category and get its childs recursively
+     *
+     * @param  mixed $category
+     * @return collection
+     */
+    public static  function getChildrensIds($category)
+    {
+        $categoryIds = collect();
+        self::pluckCategoryIds($category, $categoryIds);
+        return $categoryIds;
+    }
+    public static  function pluckCategoryIds($category,$categoryIds)
+    {
+        foreach($category as $cat){
+            $categoryIds->push($cat->id);
+            if($cat->subCategories){
+                self::pluckCategoryIds($cat->subCategories,$categoryIds);
+            }
 
+        }
+     
+
+    }
 
     public function subCategories()
     {
-        return $this->hasMany(Category::class, 'parent_id');
+        return $this->hasMany(Category::class, 'parent_id')->with('subCategories');
     }
 
     public function parent()

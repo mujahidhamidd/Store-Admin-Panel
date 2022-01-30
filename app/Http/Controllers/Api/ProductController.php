@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -16,26 +17,42 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-
         $per_page = $request->query('per_page') ?? 10;
         $direction =  $request->query('direction') ?? 'desc';
         $sortBy =  $request->query('sortBy') ?? "id";
-        $global_search = $request->query('globalsearch') ?? '';
+        $search = $request->query('search') ?? '';
+        $mainCategoryFilter =  $request->query('main_category_filter');
+        $subCategoryFiltter =  $request->query('sub_category_filter');
+        if ($mainCategoryFilter) {
+            $mainCategorytree = Category::find($mainCategoryFilter)->subCategories;
+            $mainCategoryFilter = Category::getChildrensIds($mainCategorytree);
+        }
+        if ($subCategoryFiltter) {
+            $subCategory = Category::find($subCategoryFiltter);
+            $subCategorytree =  $subCategory->subCategories;
+            // if sub category has children filter by category itself and children // else filter only by category id
+            if ($subCategorytree->count() > 0) {
+                $subCategoryFiltter = Category::getChildrensIds($subCategorytree);
+            } else {
+                $subCategoryFiltter =array();
+                $subCategoryFiltter[] = $subCategory->id;
+            }
+        }
 
-        $products =  Product::with(['company', 'category.parent'])->when($global_search, function ($query) use ($global_search) {
-            $query->where('created_at', 'like', '%' . $global_search . '%')
-                ->orWhereHas('appUser', function ($subQuery) use ($global_search) {
-                    $subQuery->where('name', 'LIKE', "%{$global_search}%")
-                        ->orWhere('mobile', 'LIKE', "%{$global_search}%");
-                });
+        $products =  Product::with(['company', 'category.parent'])->when($search, function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        })->when($mainCategoryFilter, function ($query) use ($mainCategoryFilter) {
+            $query->whereIn('category_id', $mainCategoryFilter);
         })
-
+            ->when($subCategoryFiltter, function ($query) use ($subCategoryFiltter) {
+                $query->whereIn('category_id', $subCategoryFiltter);
+            })
             ->orderBy($sortBy, $direction)
             ->paginate($per_page);
 
-        $products->each(function ($product, $key) {
+        $products->each(function ($product) {
             if ($product->category)
-           return $product->category_text = $product->formatCategory($product->category)->reverse()->implode(' / ');
+                return $product->category_text = $product->formatCategory($product->category)->reverse()->implode(' / ');
         });
 
         return     $products;
@@ -64,9 +81,9 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Company $company)
+    public function show(Product $product)
     {
-        return  $company;
+        return  $product;
     }
 
 
@@ -77,14 +94,14 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Company $company)
+    public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
             'name' => 'required|string'
         ]);
-        $company->update($validated);
+        $product->update($validated);
 
-        return $company;
+        return $product;
     }
 
     /**
@@ -93,8 +110,8 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Company $company)
+    public function destroy(Product $product)
     {
-        $company->delete();
+        $product->delete();
     }
 }

@@ -9,7 +9,7 @@
         </v-btn>
       </template>
     </v-snackbar>
-    <v-dialog v-model="addProductDialog" persistent max-width="1000px">
+    <v-dialog v-model="addProductDialog"  max-width="1000px">
       <v-form ref="form" v-model="form" lazy-validation>
         <v-card>
            <v-toolbar
@@ -34,6 +34,7 @@
                   <v-text-field
                     rounded
                     filled
+                    hide-details
                     v-model="name"
                     class="mx-4 white--text"
                     label="name*"
@@ -79,7 +80,7 @@
                    <p class="text--h4 mx-4"> Select Category:  </p>
                   <v-treeview
                     :active.sync="selectedCategory"
-                    :items="categories"
+                    :items="categoriesTree"
                     activatable
                     rounded
                     hoverable
@@ -110,6 +111,80 @@
       </v-col>
     </v-row>
 
+
+    <v-row>
+
+    <v-col cols="3">
+
+      <v-text-field
+          rounded
+          filled
+          hide-details
+          dense
+          v-model="search"
+          class="mx-4 white--text"
+          label="name*"
+           required
+       ></v-text-field>  
+    </v-col>
+
+      <v-col cols="3">
+        <v-autocomplete
+          v-model="selectedMainCategory"
+          :items="mainCategories"
+           chips
+           @change="getProducts"
+           filled
+           rounded
+           clearable
+           small-chips
+           item-text="name"
+           item-value="id"
+           class="mx-4 white--text"
+           label="Filter By Main Category"
+                >
+            <template v-slot:selection="data">
+             <v-chip
+               dark
+               color="primary"
+               v-bind="data.attrs"
+               :input-value="data.selected"
+                 >
+                  {{ data.item.name }}
+               </v-chip>
+            </template>
+        </v-autocomplete>
+      </v-col>
+      
+      <v-col cols="3">
+        <v-autocomplete
+          v-model="selectedSubCategory"
+          :items="subCategories"
+           @change="getProducts"
+           clearable
+           chips
+            filled
+            small-chips
+           rounded
+           item-text="name"
+           item-value="id"
+           class="mx-4 white--text"
+           label="Filter By Sub Category"
+                >
+            <template v-slot:selection="data">
+             <v-chip
+               dark
+               color="primary"
+               v-bind="data.attrs"
+               :input-value="data.selected"
+                 >
+                  {{ data.item.name }}
+               </v-chip>
+            </template>
+        </v-autocomplete>
+      </v-col>
+
+    </v-row>
     <v-row>
       <v-col cols="12">
         <v-data-table
@@ -143,7 +218,7 @@ export default {
       },
       deep: true,
     },
-    globalsearch: {
+    search: {
       handler() {
         this.getProducts();
       },
@@ -157,16 +232,22 @@ export default {
       name: "",
       price: 0,
       form: "",
-      loadingButton : false,
+      loadingButton: false,
       errors: [],
+      search : null,
       totalproducts: null,
       options: {},
       loading: false,
       products: [],
       companies: [],
       categories: [],
+      mainCategories: [],
+      subCategories: [],
+      categoriesTree: [],
       selectedCategory: null,
       selectedCompany: null,
+      selectedMainCategory: null,
+      selectedSubCategory: null,
       snackbar: {
         show: false,
         text: "test",
@@ -189,6 +270,9 @@ export default {
       payload = {
         page: page,
         per_page: itemsPerPage,
+        search : this.search,
+        main_category_filter: this.selectedMainCategory,
+        sub_category_filter: this.selectedSubCategory,
       };
 
       if (sortBy.length === 1 && sortDesc.length === 1) {
@@ -221,7 +305,14 @@ export default {
       axios
         .get(`/api/categories`)
         .then((res) => {
-          this.categories = res.data;
+          this.categories = res.data.allCategories;
+          this.categoriesTree = res.data.allCategoriesTree;
+          this.mainCategories = this.categories.filter(
+            (category) => !category.parent_id
+          );
+          this.subCategories = this.categories.filter(
+            (category) => category.parent_id
+          );
         })
         .catch((err) => console.log(err.response.data))
         .finally(() => ({}));
@@ -241,7 +332,7 @@ export default {
     },
     storeProduct() {
       if (!this.$refs.form.validate()) return;
-       this.loadingButton = true;
+      this.loadingButton = true;
       axios
         .post("/api/products", {
           name: this.name,
@@ -250,7 +341,7 @@ export default {
           company_id: this.selectedCompany,
         })
         .then((response) => {
-           this.loadingButton = false;
+          this.loadingButton = false;
           if (response.status == 201) {
             this.snackbar.text = "Product saved";
             this.snackbar.color = "green";
@@ -260,7 +351,7 @@ export default {
           }
         })
         .catch((err) => {
-            this.loadingButton = false;
+          this.loadingButton = false;
           if (err.response.status == 422) {
             this.errors = err.response.data.errors;
           } else {
