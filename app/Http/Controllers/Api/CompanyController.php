@@ -19,17 +19,7 @@ class CompanyController extends Controller
         $per_page = $request->query('per_page') ?? '';
         $direction =  $request->query('direction') ?? 'desc';
         $sortBy =  $request->query('sortBy') ?? "id";
-        $global_search = $request->query('globalsearch') ?? '';
-
-        return  Company::when($global_search, function ($query) use ($global_search) {
-            $query->where('created_at', 'like', '%' . $global_search . '%')
-                ->orWhereHas('appUser', function ($subQuery) use ($global_search) {
-                    $subQuery->where('name', 'LIKE', "%{$global_search}%")
-                        ->orWhere('mobile', 'LIKE', "%{$global_search}%");
-                });
-              })
-
-            ->orderBy($sortBy, $direction)
+        return  Company::orderBy($sortBy, $direction)
             ->paginate($per_page);
     }
 
@@ -71,9 +61,9 @@ class CompanyController extends Controller
         $validated = $request->validate([
             'name' => 'required|string'
         ]);
-         $company->update($validated);
+        $company->update($validated);
 
-         return $company;
+        return $company;
     }
 
     /**

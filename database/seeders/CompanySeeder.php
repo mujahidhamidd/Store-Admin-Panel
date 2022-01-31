@@ -15,12 +15,21 @@ class CompanySeeder extends Seeder
     public function run()
     {
 
-        $data = [
-            ['name' => 'John'],
-            ['name' => 'Maria'],
-            ['name' => 'Julia'],
-        ];
-
-        Company::insert($data);
+         Company::insert(
+            [
+                [
+                    'name' => 'Apple'
+                ],
+                [
+                    'name' => 'Samsung'
+                ],
+                [
+                    'name' => 'Asus'
+                ],
+                [
+                    'name' => 'Acer'
+                ]
+            ]
+        );
     }
 }
